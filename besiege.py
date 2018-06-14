@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from customizedShape import CustomizedShape
 
+
 # Fixing random state for reproducibility
 np.random.seed(19680801)
 
@@ -63,13 +64,16 @@ def init():
     ax.set_yticklabels([])
     
     # Initialize data.
+    # robot.
     data_robot['position'] = np.random.uniform([0, 0], [env_width, env_height], (n_robot, 2))
+    data_robot['color'] = np.repeat([[0., 1., 0., 1.]], n_robot, axis=0)
+    # target.
     data_target['position'][0] = np.asarray([[round(env_width*0.5) + 0.5, round(env_height*0.5) + 0.5]])
+    data_target['color'] = np.repeat([[1., 0., 0., 1.]], n_target, axis=0)
     
-
     
-#
-def data_gen(frame_number=0):
+# Generate the data randomly.
+def data_gen_random(frame_number=0):
     
     threshold = 1e2
     step_x = 0.
@@ -78,14 +82,6 @@ def data_gen(frame_number=0):
     while frame_number < threshold:
         # Get an index which we can use to re-spawn the oldest data.
         current_index_robot = frame_number % n_robot 
-
-        # Make all colors more transparent as time progresses.
-        # robot.
-#         data_robot['color'][:, 3] -=  1.0/len(data_robot)
-#         data_robot['color'][:, 3] = np.clip(data_robot['color'][:, 3], 0, 1)
-        data_robot['color'][current_index_robot] = (0, 1, 0, 1)
-        # target.
-        data_target['color'][0] = (1, 0, 0, 1)
 
         # Pick a new position for oldest data.
         # robot.
@@ -100,10 +96,16 @@ def data_gen(frame_number=0):
         step_x += (env_width / 2 - 2) / (threshold)
         step_y += (env_height/ 2 - 2) / (threshold)
         
-        yield data_robot, data_target
+        yield data_robot, data_target    
+
+
+
+#
+def data_gen(frame_number=0):
+   pass
     
 
-
+#
 def update(data):
     
     # Update the scatter collection, with the new colors and positions.
@@ -119,6 +121,6 @@ def update(data):
 
 
 # Construct the animation, using the update function as the animation director.
-animation = animation.FuncAnimation(fig, update, data_gen, interval=5, init_func=init,
+animation = animation.FuncAnimation(fig, update, data_gen_random, interval=5, init_func=init,
                                    repeat=False)
 plt.show()
