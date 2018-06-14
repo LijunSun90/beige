@@ -8,7 +8,7 @@ np.random.seed(19680801)
 
 
 # Create new Figure and an Axes which fills it.
-fig = plt.figure(num="besiege", figsize=(12, 12), dpi=96, facecolor='w', edgecolor='k')
+fig = plt.figure(num="besiege", figsize=(10, 10), dpi=96, facecolor='w', edgecolor='k')
 ax = fig.add_subplot(1, 1, 1)
 
 
@@ -23,11 +23,9 @@ n_target = 1
 # Deploy robots.
 data_robot = np.zeros(n_robot, dtype=[('position', float, 2),
                                       ('color',    float, 4)])
-data_robot['position'] = np.random.uniform([0, 0], [env_width, env_height], (n_robot, 2))
 # Deploy targets.
 data_target = np.zeros(n_target, dtype=[('position', float, 2),
                                         ('color',    float, 4)])
-data_target['position'][0] = np.asarray([[round(env_width*0.5) + 0.5, round(env_height*0.5) + 0.5]])
 # Deploy walls.
 for shape in CustomizedShape().walls['shape']:
     ax.add_patch(shape)
@@ -64,6 +62,9 @@ def init():
     ax.set_xticklabels([])
     ax.set_yticklabels([])
     
+    # Initialize data.
+    data_robot['position'] = np.random.uniform([0, 0], [env_width, env_height], (n_robot, 2))
+    data_target['position'][0] = np.asarray([[round(env_width*0.5) + 0.5, round(env_height*0.5) + 0.5]])
     
 
     
