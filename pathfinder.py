@@ -1,11 +1,13 @@
+from envSetup import EnvSetup
+
 
 
 # pathfinder
 class Pathfinder():    
     #
     def __init__(self):
-        pass
-    
+        self.nodes_movable = EnvSetup().nodes_movable
+            
     
     
     # 4 neighbors: east, north, west, south.
@@ -38,7 +40,6 @@ class Pathfinder():
     
     
 # test.
-
 # node = [3, 3]
 # Pathfinder().neighbours4(node)
 # Pathfinder().neighbours8(node)
