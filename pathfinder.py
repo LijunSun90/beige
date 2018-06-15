@@ -9,6 +9,13 @@ class Pathfinder():
         self.nodes_movable = EnvSetup().nodes_movable
             
     
+    #
+    def checkValidation(self, node):
+        if node in self.nodes_movable:
+            return True
+        else:
+            return False
+    
     
     # 4 neighbors: east, north, west, south.
     def neighbours4(self, node):
@@ -18,7 +25,7 @@ class Pathfinder():
         for dir in dirs:
             neighbor = [node[0] + dir[0], node[1] + dir[1]]
             # Check for validation.
-            if neighbor in self.nodes_movable:
+            if self.checkValidation(neighbor):
                 result.append(neighbor)
         
         return result
@@ -31,7 +38,7 @@ class Pathfinder():
         for dir in dirs:
             neighbor = [node[0] + dir[0], node[1] + dir[1]]
             # Check for validation.
-            if neighbor in self.nodes_movable:
+            if self.checkValidation(neighbor):
                 result.append(neighbor)        
         
         return result

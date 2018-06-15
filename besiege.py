@@ -55,11 +55,11 @@ scatter_target = ax.scatter(data_target['position'][:, 0], data_target['position
 def init():
     
     # Map Backgroud setup.
-    ax.set_xlim(0-0.5, map_width+0.5)
-    ax.set_ylim(0-0.5, map_height+0.5)
+    ax.set_xlim(0-0.5, map_width-0.5)
+    ax.set_ylim(0-0.5, map_height-0.5)
     ax.set_aspect('equal')    
-    x_ticks = np.arange(0-0.5, map_width+0.5, 1)
-    y_ticks = np.arange(0-0.5, map_height+0.5, 1)
+    x_ticks = np.arange(0-0.5, map_width-0.5, 1)
+    y_ticks = np.arange(0-0.5, map_height-0.5, 1)
     ax.set_xticks(x_ticks)
     ax.set_yticks(y_ticks)
     ax.grid(True)
