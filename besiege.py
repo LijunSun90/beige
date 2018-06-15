@@ -1,7 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+from envSetup import EnvSetup
 from customizedShape import CustomizedShape
+
 
 
 # Fixing random state for reproducibility
@@ -14,13 +16,14 @@ ax = fig.add_subplot(1, 1, 1)
 
 
 
-# Environment setup parameters -- Customized paramaters.
-env_width = 30
-env_height = 15
-n_robot = 20
-n_target = 1
+# Map setup parameters -- Customized paramaters.
+map_width = EnvSetup().map_width
+map_height = EnvSetup().map_height
+n_robot = EnvSetup().n_robot
+n_target = EnvSetup().n_target
 
-# Environment robots setup.
+
+# Map robots setup.
 # Deploy robots.
 data_robot = np.zeros(n_robot, dtype=[('position', float, 2),
                                       ('color',    float, 4)])
@@ -51,12 +54,12 @@ scatter_target = ax.scatter(data_target['position'][:, 0], data_target['position
 #
 def init():
     
-    # Environment Backgroud setup.
-    x_ticks = np.arange(0, env_width + 1, 1)
-    y_ticks = np.arange(0, env_height + 1, 1)
-    ax.set_xlim(0, env_width)
-    ax.set_ylim(0, env_height)
-    ax.set_aspect('equal')
+    # Map Backgroud setup.
+    ax.set_xlim(0-0.5, map_width+0.5)
+    ax.set_ylim(0-0.5, map_height+0.5)
+    ax.set_aspect('equal')    
+    x_ticks = np.arange(0-0.5, map_width+0.5, 1)
+    y_ticks = np.arange(0-0.5, map_height+0.5, 1)
     ax.set_xticks(x_ticks)
     ax.set_yticks(y_ticks)
     ax.grid(True)
@@ -65,15 +68,15 @@ def init():
     
     # Initialize data.
     # robot.
-    data_robot['position'] = np.random.uniform([0, 0], [env_width, env_height], (n_robot, 2))
+    data_robot['position'] = np.around(np.random.uniform([0, 0], [map_width, map_height], (n_robot, 2)))
     data_robot['color'] = np.repeat([[0., 1., 0., 1.]], n_robot, axis=0)
     # target.
-    data_target['position'][0] = np.asarray([[round(env_width*0.5) + 0.5, round(env_height*0.5) + 0.5]])
+    data_target['position'][0] = np.around(np.asarray([[map_width*0.5, map_height*0.5]]))
     data_target['color'] = np.repeat([[1., 0., 0., 1.]], n_target, axis=0)
     
     
 # Generate the data randomly.
-def data_gen_random(frame_number=0):
+def data_generator_random(frame_number=0):
     
     threshold = 1e2
     step_x = 0.
@@ -85,23 +88,23 @@ def data_gen_random(frame_number=0):
 
         # Pick a new position for oldest data.
         # robot.
-        data_robot['position'][current_index_robot] = np.random.uniform([0+step_x, 0+step_y], [env_width-step_x, env_height-step_y], 2)
+        data_robot['position'][current_index_robot] = np.around(np.random.uniform([0+step_x, 0+step_y], [map_width-step_x, map_height-step_y], 2))
         # target.
-        data_target['position'][0] = np.asarray([[round(env_width*0.5) + 0.5, round(env_height*0.5) + 0.5]])
+        data_target['position'][0] = np.around(np.asarray([[map_width*0.5, map_height*0.5]]))
         # wall.
         
 
         # Update.
         frame_number += 1
-        step_x += (env_width / 2 - 2) / (threshold)
-        step_y += (env_height/ 2 - 2) / (threshold)
+        step_x += (map_width / 2 - 2) / (threshold)
+        step_y += (map_height/ 2 - 2) / (threshold)
         
         yield data_robot, data_target    
 
 
 
 #
-def data_gen(frame_number=0):
+def data_generator(frame_number=0):
    pass
     
 
@@ -121,6 +124,6 @@ def update(data):
 
 
 # Construct the animation, using the update function as the animation director.
-animation = animation.FuncAnimation(fig, update, data_gen_random, interval=5, init_func=init,
+animation = animation.FuncAnimation(fig, update, data_generator_random, interval=5, init_func=init,
                                    repeat=False)
 plt.show()
