@@ -36,6 +36,37 @@ for shape in CustomizedShape().walls['shape']:
     ax.add_patch(shape)
 # print(CustomizedShape().walls['position'])
 
+# Deploy background information.
+line_pathes = []
+# dot_cost_so_far = []
+dot_came_from_cost = []
+
+pathfinderObject = Pathfinder()
+pathfinderObject.breadth_first_search()
+
+# Draw the spread cost of the search algorithm.
+came_from = pathfinderObject.came_from.copy()
+cost_so_far = pathfinderObject.cost_so_far.copy()
+dot_came_from_cost.clear()
+while len(came_from) != 0:
+    item_came_from = came_from.popitem()
+    current = item_came_from[0]
+    parent = item_came_from[1]
+    item_cost_so_far = cost_so_far.get(current)
+    if parent != None:
+        dot_came_from_cost.append(plt.annotate(str(item_cost_so_far),
+                                               ha='center', va='center', alpha=0.3,
+                                               xytext=current,
+                                               xy=parent,
+                                               arrowprops={'arrowstyle': '->', 'alpha': 0.3}))
+    # Draw the spread cost of the search algorithm.    
+#     dot_cost_so_far.clear()
+#     while len(cost_so_far) != 0:
+#         item = cost_so_far.popitem()
+#         pos = item[0]
+#         pos_cost = item[1]
+#         dot_cost_so_far.append(plt.annotate(str(pos_cost), xy=pos, ha='center', va='center', alpha=0.3))
+    # Generate data_robot.
 
 
 # Construct the scatter which we will update during animation
@@ -48,7 +79,7 @@ scatter_target = ax.scatter(data_target['position'][:, 0], data_target['position
                             s=256, lw=0.5, 
                             edgecolors=data_target['color'], facecolors=data_target['color'], 
                             marker=CustomizedShape().marker_target)
-lines = []
+
     
     
     
@@ -76,6 +107,7 @@ def init():
 #     data_target['position'][0] = np.around(np.asarray([[map_width*0.5, map_height*0.5]]))
     data_target['position'][0] = np.array(EnvSetup().nodes_target_initializer)
     data_target['color'] = np.repeat([[1., 0., 0., 1.]], n_target, axis=0)
+    return scatter_robot, scatter_target
     
     
 # Generate the data randomly.
@@ -108,9 +140,6 @@ def data_generator_random(frame_number=0):
 
 #
 def data_generator(frame_number=0):
-#     pass
-    pathfinderObject = Pathfinder()
-    pathfinderObject.breadth_first_search()
     # path = [[path_robot_1], [path_robot_2], ..., [path_robot_n]]
     path = []
     path_x = []
@@ -119,12 +148,13 @@ def data_generator(frame_number=0):
         path.append(pathfinderObject.reconstruct_path(tuple(data_robot['position'][robot_i])))
         path_x.append([path[robot_i][ix][0] for ix in range(len(path[robot_i]))])
         path_y.append([path[robot_i][ix][1] for ix in range(len(path[robot_i]))])
-    # Generate data_robot.
+
+    # Draw the path of each robot.
+    line_pathes.clear()
+    for ix in np.arange(len(path_x)):
+        line_pathes.append(plt.plot(path_x[ix], path_y[ix], '--', lw=1))
+    #
     while path != []:
-        #
-        lines.clear()
-        for ix in np.arange(len(path_x)):
-            lines.append(plt.plot(path_x[ix], path_y[ix], '--', lw=1))
         #
         for robot_i  in np.arange(n_robot):
             try:
@@ -147,9 +177,11 @@ def update(data):
     scatter_target.set_facecolors(data_target['color'])
     scatter_target.set_offsets(data_target['position'])
     
+    return scatter_robot, scatter_target
+    
 
 
 # Construct the animation, using the update function as the animation director.
 ani = animation.FuncAnimation(fig, update, data_generator, interval=100, init_func=init,
-                                   repeat=False)
+                                   repeat=False, blit=True)
 plt.show()
