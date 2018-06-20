@@ -2,4 +2,4 @@
 
 ## Calling convention:
 
-> python3 besiege
+> python3 besiege.py
