@@ -113,6 +113,9 @@ def init():
     
     #
     # path = [[path_robot_1], [path_robot_2], ..., [path_robot_n]]
+    path.clear()
+    path_x.clear()
+    path_y.clear()
     for robot_i  in np.arange(n_robot):
         path.append(pathfinderObject.reconstruct_path(tuple(data_robot['position'][robot_i])))
         path_x.append([path[robot_i][ix][0] for ix in range(len(path[robot_i]))])
@@ -156,7 +159,6 @@ def data_generator_random(frame_number=0):
 
 #
 def data_generator(frame_number=0):
-
     #
     while path != []:
         #
@@ -181,7 +183,7 @@ def update(data):
     scatter_target.set_facecolors(data_target['color'])
     scatter_target.set_offsets(data_target['position'])
     
-    return scatter_robot, scatter_target
+    return scatter_robot, scatter_target, 
     
 
 

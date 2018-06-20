@@ -57,6 +57,18 @@ class Pathfinder():
         else:
             return False
 
+        
+    
+    # Check if the node is passable in the diagonal direction.
+    def passableDiagonal(self, from_node, to_node):
+        node_diagonal_block_1 = (to_node[0], from_node[1])
+        node_diagonal_block_2 = (from_node[0], to_node[1])
+        if node_diagonal_block_1 in self.nodes_obstacleStatic or node_diagonal_block_2 in self.nodes_obstacleStatic:
+            return False
+        else:
+            return True
+        
+        
     
     # 4 neighbors: east, north, west, south.
     def neighbors4(self, node):
@@ -80,7 +92,7 @@ class Pathfinder():
         for dir in dirs:
             neighbor = (node[0] + dir[0], node[1] + dir[1])
             # Check for validation.
-            if self.passable(neighbor):
+            if self.passable(neighbor) and self.passableDiagonal(node, neighbor):
                 result.append(neighbor)        
         
         return result
@@ -156,16 +168,16 @@ class Pathfinder():
         self.cost_so_far[self.nodes_start] = 0
         goals = self.nodes_goals.copy()
 
+        count = 0
         while not frontier.empty():
             current = frontier.get()
             
             # Early exit.
             if current in goals:
+                print("Reach the goal", count, ":", current)
+                count = count + 1
                 goals.remove(current)
             if len(goals) == 0:
-#                 print("Early exit!")
-#                 print("The last goal:", current)
-#                 print("cost_so_far:", self.cost_so_far[current])
                 break
             
             neighbors = self.neighbors8(current)
