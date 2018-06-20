@@ -40,6 +40,9 @@ for shape in CustomizedShape().walls['shape']:
 line_pathes = []
 # dot_cost_so_far = []
 dot_came_from_cost = []
+path = []
+path_x = []
+path_y = []
 
 pathfinderObject = Pathfinder()
 pathfinderObject.breadth_first_search()
@@ -107,6 +110,19 @@ def init():
 #     data_target['position'][0] = np.around(np.asarray([[map_width*0.5, map_height*0.5]]))
     data_target['position'][0] = np.array(EnvSetup().nodes_target_initializer)
     data_target['color'] = np.repeat([[1., 0., 0., 1.]], n_target, axis=0)
+    
+    #
+    # path = [[path_robot_1], [path_robot_2], ..., [path_robot_n]]
+    for robot_i  in np.arange(n_robot):
+        path.append(pathfinderObject.reconstruct_path(tuple(data_robot['position'][robot_i])))
+        path_x.append([path[robot_i][ix][0] for ix in range(len(path[robot_i]))])
+        path_y.append([path[robot_i][ix][1] for ix in range(len(path[robot_i]))])
+
+    # Draw the path of each robot.
+    line_pathes.clear()
+    for ix in np.arange(len(path_x)):
+        line_pathes.append(plt.plot(path_x[ix], path_y[ix], '--', lw=1))
+    
     return scatter_robot, scatter_target
     
     
@@ -140,19 +156,7 @@ def data_generator_random(frame_number=0):
 
 #
 def data_generator(frame_number=0):
-    # path = [[path_robot_1], [path_robot_2], ..., [path_robot_n]]
-    path = []
-    path_x = []
-    path_y = []
-    for robot_i  in np.arange(n_robot):
-        path.append(pathfinderObject.reconstruct_path(tuple(data_robot['position'][robot_i])))
-        path_x.append([path[robot_i][ix][0] for ix in range(len(path[robot_i]))])
-        path_y.append([path[robot_i][ix][1] for ix in range(len(path[robot_i]))])
 
-    # Draw the path of each robot.
-    line_pathes.clear()
-    for ix in np.arange(len(path_x)):
-        line_pathes.append(plt.plot(path_x[ix], path_y[ix], '--', lw=1))
     #
     while path != []:
         #
