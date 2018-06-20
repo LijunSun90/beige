@@ -3,11 +3,12 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from envSetup import EnvSetup
 from customizedShape import CustomizedShape
+from pathfinder import Pathfinder
 
 
 
 # Fixing random state for reproducibility
-np.random.seed(19680801)
+np.random.seed(EnvSetup().seed)
 
 
 # Create new Figure and an Axes which fills it.
@@ -47,7 +48,7 @@ scatter_target = ax.scatter(data_target['position'][:, 0], data_target['position
                             s=256, lw=0.5, 
                             edgecolors=data_target['color'], facecolors=data_target['color'], 
                             marker=CustomizedShape().marker_target)
-
+lines = []
     
     
     
@@ -68,10 +69,12 @@ def init():
     
     # Initialize data.
     # robot.
-    data_robot['position'] = np.around(np.random.uniform([0, 0], [map_width, map_height], (n_robot, 2)))
+#     data_robot['position'] = np.around(np.random.uniform([0, 0], [map_width, map_height], (n_robot, 2)))
+    data_robot['position'] = np.array(EnvSetup().nodes_robot_initializer)
     data_robot['color'] = np.repeat([[0., 1., 0., 1.]], n_robot, axis=0)
     # target.
-    data_target['position'][0] = np.around(np.asarray([[map_width*0.5, map_height*0.5]]))
+#     data_target['position'][0] = np.around(np.asarray([[map_width*0.5, map_height*0.5]]))
+    data_target['position'][0] = np.array(EnvSetup().nodes_target_initializer)
     data_target['color'] = np.repeat([[1., 0., 0., 1.]], n_target, axis=0)
     
     
@@ -105,7 +108,30 @@ def data_generator_random(frame_number=0):
 
 #
 def data_generator(frame_number=0):
-   pass
+#     pass
+    pathfinderObject = Pathfinder()
+    pathfinderObject.breadth_first_search()
+    # path = [[path_robot_1], [path_robot_2], ..., [path_robot_n]]
+    path = []
+    path_x = []
+    path_y = []
+    for robot_i  in np.arange(n_robot):
+        path.append(pathfinderObject.reconstruct_path(tuple(data_robot['position'][robot_i])))
+        path_x.append([path[robot_i][ix][0] for ix in range(len(path[robot_i]))])
+        path_y.append([path[robot_i][ix][1] for ix in range(len(path[robot_i]))])
+    # Generate data_robot.
+    while path != []:
+        #
+        lines.clear()
+        for ix in np.arange(len(path_x)):
+            lines.append(plt.plot(path_x[ix], path_y[ix], '--', lw=1))
+        #
+        for robot_i  in np.arange(n_robot):
+            try:
+                data_robot['position'][robot_i] = path[robot_i].pop()
+            except IndexError:
+                pass
+        yield data_robot
     
 
 #
@@ -124,6 +150,6 @@ def update(data):
 
 
 # Construct the animation, using the update function as the animation director.
-animation = animation.FuncAnimation(fig, update, data_generator_random, interval=5, init_func=init,
+ani = animation.FuncAnimation(fig, update, data_generator, interval=100, init_func=init,
                                    repeat=False)
 plt.show()
