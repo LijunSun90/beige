@@ -72,16 +72,21 @@ class EnvSetup():
     
     # Generate the initial positions of the target.
     def target_initializer(self, n_target):
+        pos_targets = {}
         # Set the initial position of  the target at the center of the map.
         pos_target = tuple(np.around((self.map_width*0.5, self.map_height*0.5)))
 #         pos_target = [[round(self.map_width*0.5), round(self.map_height*0.5)]]
-        return [pos_target]
+        pos_targets[pos_target] = pos_target
+        return pos_targets
     
     
     # Generate the initial positions of the robots.
     def robot_initializer(self, n_robot):
         np.random.seed(self.seed)
-        pos_robots = []
+#         pos_robots = []
+        # pos_robots = {identifier_robot1: initial_pos_robot1, ..., identifier_robotN: initial_pos_robotN}
+        # assign the initial position of each robot as its permanent identifier.
+        pos_robots = {}
         for ix in np.arange(n_robot):
             pos_robot = tuple(np.around(np.random.uniform([0, 0], [self.map_width, self.map_height], 2)))
             # Ensure the new position is not a duplicate of any previous robot's position.
@@ -89,12 +94,13 @@ class EnvSetup():
                 pos_robot = tuple(np.around(np.random.uniform([0, 0], [self.map_width, self.map_height], 2)))
             # Add the new robot position to self.nodes_obstacleDynamic.
             self.nodes_obstacleDynamic.append(pos_robot) 
-            pos_robots.append(pos_robot)
+#             pos_robots.append(pos_robot)
+            pos_robots[pos_robot] = pos_robot
                
         return pos_robots
     
 
 # test
-# np.array(EnvSetup().robot_initialaizer(20))
-# EnvSetup().target_initializer
+# EnvSetup().robot_initializer(20)
+# EnvSetup().target_initializer(1)
     

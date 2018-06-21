@@ -44,11 +44,15 @@ class Pathfinder():
         self.nodes_obstacleStatic = EnvSetup().nodes_obstacleStatic
         self.nodes_obstacleDynamic = EnvSetup().nodes_obstacleDynamic
         
-        self.nodes_start = EnvSetup().nodes_target_initializer[0]
-        self.nodes_goals = EnvSetup().nodes_robot_initializer
+        self.nodes_start = list(EnvSetup().nodes_target_initializer.values())[0]
+        # self.nodes_goals ={identifier_robot1: initial_pos_robot1, ..., identifier_robotN: initial_pos_robotN}
+        self.nodes_goals = EnvSetup().nodes_robot_initializer.copy()
+        # self.came_from = {current0: parent0, current1:parent1, ...} 
         self.came_from = {}
+        # self.cost_so_far = {node0: cost_from_node0_to_start, node1: cost_from_node1_to_start, ...}
         self.cost_so_far = {}
-        self.goals_priority = {}
+        # self.goals_priority = {priority0: initial_pos_robot_i, priority1: initial_pos_robot_j, ...}
+        self.priority_goal_identifier = {}
             
     
     # Check if the node is passalbe.
@@ -169,16 +173,17 @@ class Pathfinder():
         self.cost_so_far[self.nodes_start] = 0
         goals = self.nodes_goals.copy()
 
+        self.priority_goal_identifier.clear()
         priority = 0
-        self.goals_priority.clear()
         while not frontier.empty():
             current = frontier.get()
             
             # Early exit.
-            if current in goals:
-                self.goals_priority[current] = priority
-                goals.remove(current)
-                print("Reach the goal", priority, ":", priority)
+            if current in goals.values():
+                # self.goals_priority = {priority0: initial_pos_robot_i, priority1: initial_pos_robot_j, ...}
+                self.priority_goal_identifier[priority] = current
+                goals.pop(current)
+                print("priority_goal_identifier[", priority, "]:", current)
                 priority = priority + 1
             if len(goals) == 0:
                 break
@@ -191,7 +196,7 @@ class Pathfinder():
                     self.came_from[next] = current
                     self.cost_so_far[next] = new_cost
         
-        return self.came_from
+        return self.came_from, self.cost_so_far, self.priority_goal_identifier
     
     
 
@@ -203,4 +208,4 @@ class Pathfinder():
 # Pathfinder().neighbors8(node)
 # pathfinder = Pathfinder()
 # pathfinder.breadth_first_search()
-# pathfinder.reconstruct_path(pathfinder.nodes_goals[0])
+# pathfinder.reconstruct_path(pathfinder.nodes_goals.popitem()[0])

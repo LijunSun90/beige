@@ -10,11 +10,20 @@ from pathfinder import Pathfinder
 # Fixing random state for reproducibility
 np.random.seed(EnvSetup().seed)
 
-
 # Create new Figure and an Axes which fills it.
 fig = plt.figure(num="besiege", figsize=(10, 10), dpi=96, facecolor='w', edgecolor='k')
 ax = fig.add_subplot(1, 1, 1)
+title_text = plt.title('')
+title_template = 'Frame = %d'
 
+# Deploy background information.
+line_paths = []
+dot_came_from_cost = []
+path = []
+path_x = []
+path_y = []
+# identifier_i_robot_j = {identifier_i: robot_j}
+identifier_i_robot_j = {}
 
 
 # Map setup parameters -- Customized paramaters.
@@ -27,6 +36,7 @@ n_target = EnvSetup().n_target
 # Map robots setup.
 # Deploy robots.
 data_robot = np.zeros(n_robot, dtype=[('position', float, 2),
+                                      ('identifier', float, 2),
                                       ('color',    float, 4)])
 # Deploy targets.
 data_target = np.zeros(n_target, dtype=[('position', float, 2),
@@ -34,22 +44,15 @@ data_target = np.zeros(n_target, dtype=[('position', float, 2),
 # Deploy walls.
 for shape in CustomizedShape().walls['shape']:
     ax.add_patch(shape)
-# print(CustomizedShape().walls['position'])
 
-# Deploy background information.
-line_paths = []
-# dot_cost_so_far = []
-dot_came_from_cost = []
-path = []
-path_x = []
-path_y = []
-
+# Deploy 
 pathfinderObject = Pathfinder()
 pathfinderObject.breadth_first_search()
-
-# Draw the spread cost of the search algorithm.
 came_from = pathfinderObject.came_from.copy()
 cost_so_far = pathfinderObject.cost_so_far.copy()
+priority_goal_identifier = pathfinderObject.priority_goal_identifier.copy()
+
+# Draw the came_from relationship and cost_so_far of the search algorithm.
 dot_came_from_cost.clear()
 while len(came_from) != 0:
     item_came_from = came_from.popitem()
@@ -62,14 +65,7 @@ while len(came_from) != 0:
                                                xytext=current,
                                                xy=parent,
                                                arrowprops={'arrowstyle': '->', 'alpha': 0.3}))
-    # Draw the spread cost of the search algorithm.    
-#     dot_cost_so_far.clear()
-#     while len(cost_so_far) != 0:
-#         item = cost_so_far.popitem()
-#         pos = item[0]
-#         pos_cost = item[1]
-#         dot_cost_so_far.append(plt.annotate(str(pos_cost), xy=pos, ha='center', va='center', alpha=0.3))
-    # Generate data_robot.
+
 
 
 # Construct the scatter which we will update during animation
@@ -100,15 +96,21 @@ def init():
     ax.grid(True)
     ax.set_xticklabels([])
     ax.set_yticklabels([])
+    title_text.set_text('')
     
     # Initialize data.
     # robot.
 #     data_robot['position'] = np.around(np.random.uniform([0, 0], [map_width, map_height], (n_robot, 2)))
-    data_robot['position'] = np.array(EnvSetup().nodes_robot_initializer)
+    data_robot['position'] = np.array(list(EnvSetup().nodes_robot_initializer.values()))
+    data_robot['identifier'] = np.array(list(EnvSetup().nodes_robot_initializer.keys()))
     data_robot['color'] = np.repeat([[0., 1., 0., 1.]], n_robot, axis=0)
+    # Build the table illustrating the correspondance between the identifier_i and the robot_j.
+    for robot_j in np.arange(n_robot):
+        identifier_i = tuple(data_robot['identifier'][robot_j])
+        identifier_i_robot_j[identifier_i] = robot_j
     # target.
 #     data_target['position'][0] = np.around(np.asarray([[map_width*0.5, map_height*0.5]]))
-    data_target['position'][0] = np.array(EnvSetup().nodes_target_initializer)
+    data_target['position'] = np.array(list(EnvSetup().nodes_target_initializer.values()))
     data_target['color'] = np.repeat([[1., 0., 0., 1.]], n_target, axis=0)
     
     #
@@ -160,34 +162,95 @@ def data_generator_random(frame_number=0):
 #
 def data_generator(frame_number=0):
     #
-    while path != []:
-        #
-        for robot_i  in np.arange(n_robot):
+#     while path != []:
+#         frame_number = frame_number + 1
+#         #
+#         for robot_i  in np.arange(n_robot):
+#             try:
+#                 data_robot['position'][robot_i] = path[robot_i].pop()
+#             except IndexError:
+#                 pass
+#         yield data_robot, frame_number
+        
+    while path.count([]) != n_robot:
+        frame_number = frame_number + 1
+        next_positions = {}
+        # Loop all the priorities.
+        for priority in priority_goal_identifier.keys():
+            identifier_i = priority_goal_identifier.get(priority)
+            robot_j = identifier_i_robot_j.get(identifier_i)
+            # 
             try:
-                data_robot['position'][robot_i] = path[robot_i].pop()
+                next_pos = path[robot_j].pop()
             except IndexError:
-                pass
-        yield data_robot
+                next_pos = []
+            # Check collision except the robot has already been at the target position.
+            if next_pos == []:
+                data_robot['position'][robot_j] = data_robot['position'][robot_j]
+            # The position is not registed by some other robot which has a lower priority.
+            elif next_pos not in next_positions.keys(): 
+                next_positions[next_pos] = None
+                data_robot['position'][robot_j] = next_pos
+            # Otherwise, the position has already been registed by some other robot which has a lower priority.
+            else:
+                # Restore.
+                path[robot_j].append(next_pos)
+                # perserve the current position unchanged.
+                current_pos = tuple(data_robot['position'][robot_j])
+                next_positions[current_pos] = None
+                data_robot['position'][robot_j] = current_pos
+        #
+        if path.count([]) == n_robot:
+            exit_flag_local = True
+        else:
+            exit_flag_local = False
+        yield exit_flag_local, data_robot, frame_number 
+    
+                
     
 
 #
 def update(data):
     
-    # Update the scatter collection, with the new colors and positions.
-    # Update robots.
-    scatter_robot.set_edgecolors(data_robot['color'])
-    scatter_robot.set_facecolors(data_robot['color'])
-    scatter_robot.set_offsets(data_robot['position'])
-    # Update targets.
-    scatter_target.set_edgecolors(data_target['color'])
-    scatter_target.set_facecolors(data_target['color'])
-    scatter_target.set_offsets(data_target['position'])
+    exit_flag_local, foo, frame_number = data
+    print('Current frame:', frame_number)
     
-    return scatter_robot, scatter_target, 
+    if not exit_flag_local:    
+        # Update the scatter collection, with the new colors and positions.
+        # Update robots.
+        scatter_robot.set_edgecolors(data_robot['color'])
+        scatter_robot.set_facecolors(data_robot['color'])
+        scatter_robot.set_offsets(data_robot['position'])
+        # Update targets.
+        scatter_target.set_edgecolors(data_target['color'])
+        scatter_target.set_facecolors(data_target['color'])
+        scatter_target.set_offsets(data_target['position'])
+        # Update the title.
+        title_text.set_text(title_template % frame_number)
+        
+        # Save.
+        file_name = "./data/besiege" + str(frame_number) + ".png"
+        print('Saving the file', file_name)
+        plt.savefig(file_name)
+
+        return scatter_robot, scatter_target, title_text,
+    else:
+        # Save.
+        file_name = "./data/besiege" + str(frame_number) + ".png"
+        print('Saving the file', file_name)
+        plt.savefig(file_name)
+        # Exit.
+        print("---The simulation is done!")
+        exit()
     
 
 
 # Construct the animation, using the update function as the animation director.
-ani = animation.FuncAnimation(fig, update, data_generator, interval=100, init_func=init,
-                                   repeat=False, blit=True)
+ani = animation.FuncAnimation(fig, update, data_generator, interval=1, init_func=init,
+                                   save_count=200, repeat=False, blit=True)
+
+# print("Saving the simulation to the file 'besiege.mp4'")
+# ani.save('besiege.mp4') 
+# print("Saving done!")
+
 plt.show()
