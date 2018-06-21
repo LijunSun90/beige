@@ -32,7 +32,7 @@ class EnvSetup():
         
         self.nodes_target_initializer = self.target_initializer(self.n_target)
         
-        self.nodes_obstacleStatic = self.nodes_wall + self.nodes_target_initializer
+        self.nodes_obstacleStatic = self.nodes_wall
         self.nodes_obstacleDynamic = []
         
         self.nodes_robot_initializer = self.robot_initializer(self.n_robot)

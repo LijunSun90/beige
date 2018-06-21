@@ -179,7 +179,6 @@ class Pathfinder():
                 goals.remove(current)
             if len(goals) == 0:
                 break
-            
             neighbors = self.neighbors8(current)
             for next in neighbors:
                 new_cost = self.cost_so_far[current] + self.cost(current, next)
@@ -195,9 +194,9 @@ class Pathfinder():
 
     
 # test.
-# node = [3, 3]
-# Pathfinder().neighbours4(node)
-# Pathfinder().neighbours8(node)
+node = [15, 8]
+# Pathfinder().neighbors4(node)
+Pathfinder().neighbors8(node)
 # pathfinder = Pathfinder()
 # pathfinder.breadth_first_search()
 # pathfinder.reconstruct_path(pathfinder.nodes_goals[0])

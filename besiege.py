@@ -37,7 +37,7 @@ for shape in CustomizedShape().walls['shape']:
 # print(CustomizedShape().walls['position'])
 
 # Deploy background information.
-line_pathes = []
+line_paths = []
 # dot_cost_so_far = []
 dot_came_from_cost = []
 path = []
@@ -122,9 +122,9 @@ def init():
         path_y.append([path[robot_i][ix][1] for ix in range(len(path[robot_i]))])
 
     # Draw the path of each robot.
-    line_pathes.clear()
+    line_paths.clear()
     for ix in np.arange(len(path_x)):
-        line_pathes.append(plt.plot(path_x[ix], path_y[ix], '--', lw=1))
+        line_paths.append(plt.plot(path_x[ix], path_y[ix], '--', lw=2))
     
     return scatter_robot, scatter_target
     
