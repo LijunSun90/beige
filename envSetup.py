@@ -95,6 +95,6 @@ class EnvSetup():
     
 
 # test
-# np.array(EnvSetup().nodes_robot_initializer)
-# EnvSetup().nodes_target_initializer
+# np.array(EnvSetup().robot_initialaizer(20))
+# EnvSetup().target_initializer
     

@@ -48,6 +48,7 @@ class Pathfinder():
         self.nodes_goals = EnvSetup().nodes_robot_initializer
         self.came_from = {}
         self.cost_so_far = {}
+        self.goals_priority = {}
             
     
     # Check if the node is passalbe.
@@ -168,20 +169,23 @@ class Pathfinder():
         self.cost_so_far[self.nodes_start] = 0
         goals = self.nodes_goals.copy()
 
-        count = 0
+        priority = 0
+        self.goals_priority.clear()
         while not frontier.empty():
             current = frontier.get()
             
             # Early exit.
             if current in goals:
-                print("Reach the goal", count, ":", current)
-                count = count + 1
+                self.goals_priority[current] = priority
                 goals.remove(current)
+                print("Reach the goal", priority, ":", priority)
+                priority = priority + 1
             if len(goals) == 0:
                 break
             neighbors = self.neighbors8(current)
             for next in neighbors:
                 new_cost = self.cost_so_far[current] + self.cost(current, next)
+                # Check the key of self.came_from.
                 if next not in self.came_from:
                     frontier.put(next)
                     self.came_from[next] = current
@@ -194,9 +198,9 @@ class Pathfinder():
 
     
 # test.
-node = [15, 8]
+# node = [15, 8]
 # Pathfinder().neighbors4(node)
-Pathfinder().neighbors8(node)
+# Pathfinder().neighbors8(node)
 # pathfinder = Pathfinder()
 # pathfinder.breadth_first_search()
 # pathfinder.reconstruct_path(pathfinder.nodes_goals[0])
