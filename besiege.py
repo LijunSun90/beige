@@ -47,7 +47,9 @@ for shape in CustomizedShape().walls['shape']:
 
 # Deploy 
 pathfinderObject = Pathfinder()
-pathfinderObject.breadth_first_search()
+# pathfinderObject.breadth_first_search()
+# pathfinderObject.dijkstra_search()
+pathfinderObject.a_star_search()
 came_from = pathfinderObject.came_from.copy()
 cost_so_far = pathfinderObject.cost_so_far.copy()
 priority_goal_identifier = pathfinderObject.priority_goal_identifier.copy()
@@ -127,7 +129,7 @@ def init():
     line_paths.clear()
     for ix in np.arange(len(path_x)):
         line_paths.append(plt.plot(path_x[ix], path_y[ix], '--', lw=2))
-    
+    #
     return scatter_robot, scatter_target
     
     
@@ -214,7 +216,11 @@ def update(data):
     
     exit_flag_local, foo, frame_number = data
     print('Current frame:', frame_number)
-    
+    # Uncomment if no saving.
+#     exit_flag_local = False
+            
+    # Update the title.
+    title_text.set_text(title_template % frame_number)
     if not exit_flag_local:    
         # Update the scatter collection, with the new colors and positions.
         # Update robots.
@@ -225,18 +231,25 @@ def update(data):
         scatter_target.set_edgecolors(data_target['color'])
         scatter_target.set_facecolors(data_target['color'])
         scatter_target.set_offsets(data_target['position'])
-        # Update the title.
-        title_text.set_text(title_template % frame_number)
+
         
         # Save.
-        file_name = "./data/besiege" + str(frame_number) + ".png"
+#         file_name = "./data_breathFirstSearch/besiege" + str(frame_number) + ".png"
+#         file_name = "./data_breathFirstSearch4/besiege" + str(frame_number) + ".png"
+#         file_name = "./data_dijkstra4/besiege" + str(frame_number) + ".png"
+#         file_name = "./data_dijkstra/besiege" + str(frame_number) + ".png"
+        file_name = "./data_aStar/besiege" + str(frame_number) + ".png"
         print('Saving the file', file_name)
         plt.savefig(file_name)
 
         return scatter_robot, scatter_target, title_text,
     else:
         # Save.
-        file_name = "./data/besiege" + str(frame_number) + ".png"
+#         file_name = "./data_breathFirstSearch/besiege" + str(frame_number) + ".png"
+#         file_name = "./data_breathFirstSearch4/besiege" + str(frame_number) + ".png"
+#         file_name = "./data_dijkstra4/besiege" + str(frame_number) + ".png"
+#         file_name = "./data_dijkstra/besiege" + str(frame_number) + ".png"
+        file_name = "./data_aStar/besiege" + str(frame_number) + ".png"
         print('Saving the file', file_name)
         plt.savefig(file_name)
         # Exit.
@@ -246,7 +259,7 @@ def update(data):
 
 
 # Construct the animation, using the update function as the animation director.
-ani = animation.FuncAnimation(fig, update, data_generator, interval=1, init_func=init,
+ani = animation.FuncAnimation(fig, update, data_generator, interval=100, init_func=init,
                                    save_count=200, repeat=False, blit=True)
 
 # print("Saving the simulation to the file 'besiege.mp4'")

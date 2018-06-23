@@ -1,9 +1,10 @@
 from envSetup import EnvSetup
 import collections
 import heapq
+import numpy as np
     
 
-# queue
+# queue: FIFO, first in first out
 class Queue:
     def __init__(self):
         self.elements = collections.deque()
@@ -109,25 +110,30 @@ class Pathfinder():
     
     
     # Define the heuristic function.
-    def heuristic(self, node, goal):
-        dx = abs(node[0] - goal[0])
-        dy = abs(node[1] - goal[1])
-        # D: the cost of moving horizontally or vertically.
-        # D2: the cost of moving diagonally.
-        # Chebyshev distance: D = 1 and D2 = 1. 
-        # Octile distance: When D = 1 and D2 = sqrt(2).
-        D = 1
-        D2 = 1
-        return D * (dx + dy) + (D2 - 2 * D) * min(dx, dy)
+    def heuristic(self, node, goals):
+        #
+        if type(goals) == tuple:
+            goals = [goals]
+        #
+        result = []
+        for goal in goals:
+            dx = abs(node[0] - goal[0])
+            dy = abs(node[1] - goal[1])
+            # D: the cost of moving horizontally or vertically.
+            # D2: the cost of moving diagonally.
+            # Chebyshev distance: D = 1 and D2 = 1. 
+            # Octile distance: When D = 1 and D2 = sqrt(2).
+            D = 1
+            D2 = 1
+            result.append(D * (dx + dy) + (D2 - 2 * D) * min(dx, dy))
+        #
+        return min(result)
     
 
     # Build the path.
     def reconstruct_path(self, goal):
         path = []
         current = goal
-#         print("start:", self.nodes_start)
-#         print("goal:", goal)
-#         print("current:", current)
         while current != self.nodes_start:
             path.append(current)
             current = self.came_from[current]
@@ -135,32 +141,7 @@ class Pathfinder():
         path.reverse() # optional
         return path
     
-    
-    # A*
-    def a_star_search(self):
-        #
-        frontier = PriorityQueue()
-        frontier.put(self.nodes_start, 0)
-        #
-        self.came_from.clear()
-        cost_so_far = {}
-        self.came_from[self.nodes_start] = None
-        cost_so_far[self.nodes_start] = 0
-        #
-        while not frontier.empty():
-            current = frontier.get()
-            
-            # Early exit.
-            if current == goal:
-                break
 
-            for next in self.neighbors8(current):
-                new_cost = cost_so_far[current] + self.cost(current, next)
-                if next not in cost_so_far or new_cost < cost_so_far[next]:
-                    cost_so_far[next] = new_cost
-                    priority = new_cost + heuristic(next, goal)
-                    frontier.put(next, priority)
-                    self.came_from[next] = current
             
             
     # breadth_first_search
@@ -187,6 +168,8 @@ class Pathfinder():
                 priority = priority + 1
             if len(goals) == 0:
                 break
+            
+            #
             neighbors = self.neighbors8(current)
             for next in neighbors:
                 new_cost = self.cost_so_far[current] + self.cost(current, next)
@@ -199,13 +182,98 @@ class Pathfinder():
         return self.came_from, self.cost_so_far, self.priority_goal_identifier
     
     
+    # dijkstra_search
+    def dijkstra_search(self):
+        frontier = PriorityQueue()
+        frontier.put(self.nodes_start, 0)
+        self.came_from.clear()
+        self.came_from[self.nodes_start] = None
+        self.cost_so_far.clear()
+        self.cost_so_far[self.nodes_start] = 0
+        goals = self.nodes_goals.copy()
+    
+        self.priority_goal_identifier.clear()
+        priority_goal = 0    
+        while not frontier.empty():
+            current = frontier.get()
+
+            # Early exit.
+            if current in goals.values():
+                # self.goals_priority = {priority0: initial_pos_robot_i, priority1: initial_pos_robot_j, ...}
+                self.priority_goal_identifier[priority_goal] = current
+                goals.pop(current)
+                print("priority_goal_identifier[", priority_goal, "]:", current)
+                priority_goal = priority_goal + 1
+            if len(goals) == 0:
+                break
+            
+            #
+            neighbors = self.neighbors8(current)
+            for next in neighbors:
+                new_cost = self.cost_so_far[current] + self.cost(current, next)
+#                 if next not in self.cost_so_far or new_cost < self.cost_so_far[next]:
+                if new_cost < self.cost_so_far.get(next, np.Infinity):
+                    if next in self.cost_so_far:
+                        print("From the previous cost:", self.cost_so_far[next], "to the cost:", new_cost)
+                    self.cost_so_far[next] = new_cost
+                    priority_path = new_cost
+                    frontier.put(next, priority_path)
+                    self.came_from[next] = current
+        #
+        return self.came_from, self.cost_so_far, self.priority_goal_identifier
+
+
+    
+    # A*
+    def a_star_search(self):
+        frontier = PriorityQueue()
+        frontier.put(self.nodes_start, 0)
+        self.came_from.clear()
+        self.came_from[self.nodes_start] = None
+        self.cost_so_far.clear()
+        self.cost_so_far[self.nodes_start] = 0
+        goals = self.nodes_goals.copy()
+    
+        self.priority_goal_identifier.clear()
+        priority_goal = 0    
+        while not frontier.empty():
+            current = frontier.get()
+
+            # Early exit.
+            if current in goals.values():
+                # self.goals_priority = {priority0: initial_pos_robot_i, priority1: initial_pos_robot_j, ...}
+                self.priority_goal_identifier[priority_goal] = current
+                goals.pop(current)
+                print("priority_goal_identifier[", priority_goal, "]:", current)
+                priority_goal = priority_goal + 1
+            if len(goals) == 0:
+                break
+            
+            #
+            neighbors = self.neighbors8(current)
+            for next in neighbors:
+                new_cost = self.cost_so_far[current] + self.cost(current, next)
+#                 if next not in self.cost_so_far or new_cost < self.cost_so_far[next]:
+                if new_cost < self.cost_so_far.get(next, np.Infinity):
+                    if next in self.cost_so_far:
+                        print("From the previous cost:", self.cost_so_far[next], "to the cost:", new_cost)
+                    self.cost_so_far[next] = new_cost
+                    priority_path = new_cost + self.heuristic(next, list(goals.values()))
+                    frontier.put(next, priority_path)
+                    self.came_from[next] = current
+        #
+        return self.came_from, self.cost_so_far, self.priority_goal_identifier  
+    
 
 
     
 # test.
 # node = [15, 8]
-# Pathfinder().neighbors4(node)
-# Pathfinder().neighbors8(node)
-# pathfinder = Pathfinder()
-# pathfinder.breadth_first_search()
-# pathfinder.reconstruct_path(pathfinder.nodes_goals.popitem()[0])
+# pathfinderObj = Pathfinder()
+# pathfinderObj.neighbors4(node)
+# pathfinderObj.neighbors8(node)
+# pathfinderObj.breadth_first_search()
+# pathfinderObj.dijkstra_search()
+# pathfinderObj.reconstruct_path(pathfinder.nodes_goals.popitem()[0])
+# pathfinderObj.nodes_goals
+# pathfinderObj.a_star_search()
